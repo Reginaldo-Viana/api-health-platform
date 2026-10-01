@@ -5,6 +5,15 @@
 *.log
 hs_err_pid*.log
 
+
+# VS Code workspace files; keep shareable project configuration visible
+.vscode/*
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+*.code-workspace
+
 # Local H2 database files
 /data/api-health.mv.db
 /data/api-health.trace.db
