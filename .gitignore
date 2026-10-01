@@ -1,0 +1,15 @@
+# Maven build output
+/target/
+
+# Java runtime output
+*.log
+hs_err_pid*.log
+
+# Local H2 database files
+/data/api-health.mv.db
+/data/api-health.trace.db
+/data/api-health.lock.db
+
+# Operating system files
+.DS_Store
+Thumbs.db
