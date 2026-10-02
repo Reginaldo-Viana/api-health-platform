@@ -41,7 +41,7 @@ jobs:
         run: mvn --batch-mode --no-transfer-progress validate
 
   tests:
-    name: Run tests
+    name: Run unit and integration tests
     needs: validate
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_scope == 'tests' || inputs.run_scope == 'all' }}
     runs-on: ubuntu-24.04
@@ -56,7 +56,7 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Run Maven tests
+      - name: Run unit and HTTP/H2 integration tests
         run: mvn --batch-mode --no-transfer-progress test
 
   package:
