@@ -15,8 +15,15 @@ A aplicação inicia em `http://localhost:8080`. Na primeira inicialização, 22
 O workflow em `.github/workflows/maven.yml` é executado em pushes e pull requests para `main` e diariamente às 07:00 no horário de Brasília (10:00 UTC). A execução agendada roda validação, testes e empacotamento; o smoke check da aplicação continua disponível nos modos manuais `application` e `all`. O GitHub pode atrasar o início devido à fila de execuções. A esteira é dividida em três jobs:
 
 1. **Validate project**: valida a configuração Maven com `mvn validate`.
-2. **Run tests**: compila o projeto e executa os testes com `mvn test`.
+2. **Run unit and integration tests**: compila o projeto e executa todos os testes com `mvn test`.
 3. **Package and smoke check**: empacota a aplicação. No disparo manual, também pode iniciá-la e verificar `/actuator/health`.
+
+O job de testes inclui testes unitários e de integração, descobertos automaticamente pelo Maven:
+
+- `DailyReportServiceTest`: 7 casos unitários para cálculo, criação e atualização de relatórios e respostas `404`.
+- `ApiHttpIntegrationTest`: 4 casos de integração para cadastro, atualização e desativação de alvos, validação HTTP e geração/consulta de relatórios.
+
+Os testes de integração iniciam a aplicação em uma porta aleatória, usam H2 em memória e verificam a persistência por requisições HTTP. O agendador de monitoramento é isolado para evitar chamadas a APIs públicas. Atualmente, a suíte tem 11 casos e é executada pelo comando `mvn test` no GitHub Actions.
 
 Para iniciar uma execução manual, acesse **Actions**, selecione **Build, test, and smoke check**, clique em **Run workflow** e escolha o escopo:
 
