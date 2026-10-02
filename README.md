@@ -12,7 +12,7 @@ A aplicação inicia em `http://localhost:8080`. Na primeira inicialização, 22
 
 ## Esteira no GitHub Actions
 
-O workflow em `.github/workflows/maven.yml` é executado em pushes e pull requests para `main`. A execução é dividida em três jobs:
+O workflow em `.github/workflows/maven.yml` é executado em pushes e pull requests para `main` e diariamente às 07:00 no horário de Brasília (10:00 UTC). A execução agendada roda validação, testes e empacotamento; o smoke check da aplicação continua disponível nos modos manuais `application` e `all`. O GitHub pode atrasar o início devido à fila de execuções. A esteira é dividida em três jobs:
 
 1. **Validate project**: valida a configuração Maven com `mvn validate`.
 2. **Run tests**: compila o projeto e executa os testes com `mvn test`.
