@@ -1,4 +1,4 @@
-name: Build and test
+name: Build, test, and smoke check
 
 on:
   push:
@@ -7,11 +7,15 @@ on:
     branches: [main]
   workflow_dispatch:
     inputs:
-      start_application:
-        description: Start the application and check its health after tests
+      run_scope:
+        description: Choose what to run
         required: true
-        type: boolean
-        default: true
+        type: choice
+        options:
+          - application
+          - tests
+          - all
+        default: all
 
 permissions:
   contents: read
@@ -31,10 +35,15 @@ jobs:
           cache: maven
 
       - name: Build and test
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_scope == 'tests' || inputs.run_scope == 'all' }}
         run: mvn --batch-mode --no-transfer-progress verify
 
+      - name: Package application without tests
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_scope == 'application' }}
+        run: mvn --batch-mode --no-transfer-progress package -Dmaven.test.skip=true
+
       - name: Start application and check health
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.start_application }}
+        if: ${{ github.event_name == 'workflow_dispatch' && (inputs.run_scope == 'application' || inputs.run_scope == 'all') }}
         env:
           SPRING_DATASOURCE_URL: jdbc:h2:mem:github-actions;DB_CLOSE_DELAY=-1
         run: |
