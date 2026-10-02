@@ -28,6 +28,59 @@ Para iniciar uma execução manual, acesse **Actions**, selecione **Build, test,
 
 O workflow usa Java 25 e Ubuntu 24.04. O smoke check roda em um runner temporário do GitHub; ele não publica nem mantém a API disponível para acesso externo. Para testar localmente pelo Postman, inicie a aplicação com `mvn spring-boot:run` e use `http://localhost:8080`.
 
+## Testando a API localmente
+
+Inicie a aplicação em um terminal e deixe-o aberto enquanto testa:
+
+```powershell
+mvn spring-boot:run
+```
+
+A base URL é `http://localhost:8080`. No Postman, crie uma variável de ambiente `baseUrl` com esse valor e monte as requisições usando os métodos e endpoints da tabela abaixo. Para `POST` e `PUT` com corpo, selecione **Body > raw > JSON**; o Postman adicionará `Content-Type: application/json`.
+
+No PowerShell, use `curl.exe` para chamar o cURL nativo do Windows. Os exemplos a seguir verificam a saúde, listam os alvos, cadastram uma API e usam o ID retornado para executar uma verificação:
+
+```powershell
+$base = "http://localhost:8080"
+
+curl.exe -i "$base/actuator/health"
+curl.exe "$base/api/targets"
+
+$target = curl.exe -sS -X POST "$base/api/targets" `
+  -H "Content-Type: application/json" `
+  --data-raw '{"name":"API de teste","url":"https://example.com","method":"GET"}' |
+  ConvertFrom-Json
+
+$id = $target.id
+$target | Format-List
+
+curl.exe -i -X POST "$base/api/monitoring/run/$id"
+curl.exe "$base/api/monitoring/checks?targetId=$id"
+```
+
+O cadastro retorna HTTP `201 Created`; copie o `id` da resposta se não estiver usando a variável `$id`. O DTO aceita somente os métodos `GET` ou `HEAD` e URLs iniciadas por `http://` ou `https://`. O endereço `https://example.com` é apenas um exemplo; a verificação precisa de acesso à internet e consulta a URL cadastrada.
+
+Para atualizar o alvo, verificar todos os alvos ativos ou desativar o alvo de teste:
+
+```powershell
+curl.exe -i -X PUT "$base/api/targets/$id" `
+  -H "Content-Type: application/json" `
+  --data-raw '{"name":"API de teste atualizada","url":"https://example.com","method":"HEAD"}'
+
+curl.exe -i -X POST "$base/api/monitoring/run"
+curl.exe -i -X DELETE "$base/api/targets/$id"
+```
+
+O monitoramento em lote consulta todos os alvos ativos e pode demorar mais, especialmente com os 22 alvos padrão. O `DELETE` desativa o alvo sem apagar o histórico. Os dados ficam no H2 local em `./data/api-health` e persistem entre execuções.
+
+Para gerar e consultar o relatório do dia:
+
+```powershell
+$date = Get-Date -Format "yyyy-MM-dd"
+curl.exe -i -X POST "$base/api/reports/$date/generate"
+curl.exe "$base/api/reports/latest"
+```
+
 ## Rotas da API
 
 | Método | Endpoint | Descrição |
