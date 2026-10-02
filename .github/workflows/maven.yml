@@ -21,7 +21,8 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  validate:
+    name: Validate project
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -34,12 +35,45 @@ jobs:
           java-version: '25'
           cache: maven
 
-      - name: Build and test
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_scope == 'tests' || inputs.run_scope == 'all' }}
-        run: mvn --batch-mode --no-transfer-progress verify
+      - name: Validate Maven project
+        run: mvn --batch-mode --no-transfer-progress validate
 
-      - name: Package application without tests
-        if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_scope == 'application' }}
+  tests:
+    name: Run tests
+    needs: validate
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_scope == 'tests' || inputs.run_scope == 'all' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Run Maven tests
+        run: mvn --batch-mode --no-transfer-progress test
+
+  package:
+    name: Package and smoke check
+    needs: [validate, tests]
+    if: ${{ always() && needs.validate.result == 'success' && (needs.tests.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.run_scope == 'application')) && (github.event_name != 'workflow_dispatch' || inputs.run_scope == 'application' || inputs.run_scope == 'all') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+
+      - name: Package application
         run: mvn --batch-mode --no-transfer-progress package -Dmaven.test.skip=true
 
       - name: Start application and check health
