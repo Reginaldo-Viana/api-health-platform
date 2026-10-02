@@ -10,6 +10,24 @@ mvn spring-boot:run
 
 A aplicação inicia em `http://localhost:8080`. Na primeira inicialização, 22 APIs públicas são incluídas na lista. Os dados locais são armazenados em `./data/api-health`.
 
+## Esteira no GitHub Actions
+
+O workflow em `.github/workflows/maven.yml` é executado em pushes e pull requests para `main`. A execução é dividida em três jobs:
+
+1. **Validate project**: valida a configuração Maven com `mvn validate`.
+2. **Run tests**: compila o projeto e executa os testes com `mvn test`.
+3. **Package and smoke check**: empacota a aplicação. No disparo manual, também pode iniciá-la e verificar `/actuator/health`.
+
+Para iniciar uma execução manual, acesse **Actions**, selecione **Build, test, and smoke check**, clique em **Run workflow** e escolha o escopo:
+
+| Opção | Execução |
+| --- | --- |
+| `application` | Valida o projeto, empacota sem executar os testes e verifica a saúde da aplicação iniciada no runner. |
+| `tests` | Valida o projeto e executa os testes. |
+| `all` | Executa validação, testes, empacotamento e smoke check. É a opção padrão. |
+
+O workflow usa Java 25 e Ubuntu 24.04. O smoke check roda em um runner temporário do GitHub; ele não publica nem mantém a API disponível para acesso externo. Para testar localmente pelo Postman, inicie a aplicação com `mvn spring-boot:run` e use `http://localhost:8080`.
+
 ## Rotas da API
 
 | Método | Endpoint | Descrição |
