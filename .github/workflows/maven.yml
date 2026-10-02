@@ -23,7 +23,7 @@ permissions:
 jobs:
   validate:
     name: Validate project
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -42,7 +42,7 @@ jobs:
     name: Run tests
     needs: validate
     if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_scope == 'tests' || inputs.run_scope == 'all' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
@@ -61,7 +61,7 @@ jobs:
     name: Package and smoke check
     needs: [validate, tests]
     if: ${{ always() && needs.validate.result == 'success' && (needs.tests.result == 'success' || (github.event_name == 'workflow_dispatch' && inputs.run_scope == 'application')) && (github.event_name != 'workflow_dispatch' || inputs.run_scope == 'application' || inputs.run_scope == 'all') }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
